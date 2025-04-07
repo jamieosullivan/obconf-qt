@@ -24,6 +24,7 @@
 #include "maindialog.h"
 #include <obrender/render.h>
 #include "tree.h"
+#include <iostream>
 
 #include <X11/Xlib.h>
 
@@ -52,12 +53,29 @@ void MainDialog::desktops_setup_tab() {
 
   desktops_read_names();
 
+  xmlNodePtr n = tree_get_node("keyboard", NULL);
+  std::cout << "node name: " << n->name << std::endl;
+  n = n->children;
+  while(n) {
+	  //gchar *name;
+	  if (!xmlStrcmp(n->name, (const xmlChar*)"keybind")) {
+		  std::cout << "node name: " << n->name << std::endl;
+		  xmlNodePtr child = n->children;
+		  while (child) {
+			  std::cout << "\tchild name: " << child->name << std::endl;
+			  child = child->next;
+		  }
+	  }
+	  n = n->next;
+  }
+
   i = tree_get_int("desktops/popupTime", 875);
   ui.desktop_popup->setChecked(i != 0);
   ui.desktop_popup_time->setValue(i ? i : 875);
 
   gboolean all_desktops = tree_get_bool(all_desktops_node_1, TRUE);
   ui.all_desktops->setChecked(all_desktops);
+
 }
 
 void MainDialog::on_desktop_num_valueChanged(int newValue) {
