@@ -53,28 +53,56 @@ void MainDialog::desktops_setup_tab() {
 
   desktops_read_names();
 
-  xmlNodePtr n = tree_get_node("keyboard", NULL);
-  std::cout << "node name: " << n->name << std::endl;
-  n = n->children;
-  while(n) {
-	  //gchar *name;
-	  if (!xmlStrcmp(n->name, (const xmlChar*)"keybind")) {
-		  std::cout << "node name: " << n->name << std::endl;
-		  xmlNodePtr child = n->children;
-		  while (child) {
-			  std::cout << "\tchild name: " << child->name << std::endl;
-			  child = child->next;
-		  }
-	  }
-	  n = n->next;
-  }
-
   i = tree_get_int("desktops/popupTime", 875);
   ui.desktop_popup->setChecked(i != 0);
   ui.desktop_popup_time->setValue(i ? i : 875);
 
   gboolean all_desktops = tree_get_bool(all_desktops_node_1, TRUE);
   ui.all_desktops->setChecked(all_desktops);
+
+}
+
+// Definitely need: allDesktops element node (so we can avoid hardcoding all_desktops_node_1/2) 
+// Maybe need: next/prev_window_keybind, so we can fill in the keybind value in the UI string 
+// Not sure if action nodes needed, once we have the allDesktops nodes themselves
+void MainDialog::find_allDesktops_nodes() {
+
+  xmlNodePtr next_window_keybind, next_window_action, prev_window_keybind, prev_window_action;
+
+  xmlNodePtr n = tree_get_node("keyboard", NULL);
+  std::cout << "node name: " << n->name << std::endl; // can print out the keybind with the obt_xml helper functions
+  n = n->children;
+  while(n) {
+
+    if (!xmlStrcmp(n->name, (const xmlChar*)"keybind")) {
+
+    keybind = n;
+
+    std::cout << "node name: " << n->name << std::endl;
+    xmlNodePtr child = n->children;
+
+    while (child) {
+      if (!xmlStrcmp(child->name, (const xmlChar*)"action")) { 
+        if (obt_xml_attr_contains(child, "name", "NextWindow")) {
+          std::cout << "\tfound NextWindow: " << child->name << std::endl;
+          next_window_keybind = n;
+          next_window_action = child; // Needed..?
+          // Now have the relevant keybind and action nodes for allDesktops. Find the allDesktops element node
+          next_window_allDesktops = obt_xml_find_node(child, "allDesktops");
+        }
+        if (obt_xml_attr_contains(child, "name", "PreviousWindow")) {
+          std::cout << "\tfound PreviousWindow: " << child->name << std::endl;
+          prev_window_keybind = n;
+          prev_window_action = child; // Needed..?
+          prev_window_allDesktops = obt_xml_find_node(child, "allDesktops");
+        }
+      }
+    child = child->next;
+    }
+  }
+  n = n->next;
+  }
+
 
 }
 

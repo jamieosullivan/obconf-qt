@@ -73,6 +73,8 @@ private:
   void desktops_read_names();
   void desktops_write_names();
   void desktops_write_number();
+  // allDesktops
+  void find_allDesktops_nodes();
 
 private Q_SLOTS:
 
